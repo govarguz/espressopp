@@ -36,6 +36,7 @@
 #include "Velocities.hpp"
 #include "CenterOfMass.hpp"
 #include "NPart.hpp"
+#include "NRealPart.hpp"
 #include "MaxPID.hpp"
 #include "AllParticlePos.hpp"
 #include "TotalVelocity.hpp"
@@ -86,6 +87,7 @@ namespace espressopp {
       Velocities::registerPython();
       CenterOfMass::registerPython();
       NPart::registerPython();
+      NRealPart::registerPython();	
       MaxPID::registerPython();
       AllParticlePos::registerPython();
       IntraChainDistSq::registerPython();

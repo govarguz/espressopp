@@ -77,6 +77,13 @@ namespace espressopp {
       virtual void updateGhostsV();
       virtual void collectGhostForces();
 
+      void resetParticlesHangoverCounters();  //ADDH
+      void resetParticlesCommCellsCounters();  //ADDH
+
+
+      void loadCounters(int pcs[6]);
+      void loadCommCellsCounters(int pccs[6]);
+
       static void registerPython();
 
     protected:
@@ -128,6 +135,9 @@ namespace espressopp {
 	  For the order, see NodeGrid.
       */
       CommCells commCells[6];
+      // variables that keep time information about particles Hangover count // ADDH
+      int particlesHangoverCounters[6];
+      int particlesCommCellsCounters[6];
 
       static LOG4ESPP_DECL_LOGGER(logger);
     };

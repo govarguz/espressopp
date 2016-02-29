@@ -35,6 +35,7 @@ from espressopp.analysis.ConfigurationsExtAdress import *
 from espressopp.analysis.Velocities import *
 from espressopp.analysis.CenterOfMass import *
 from espressopp.analysis.NPart import *
+from espressopp.analysis.NRealPart import *
 from espressopp.analysis.MaxPID import *
 from espressopp.analysis.AllParticlePos import *
 from espressopp.analysis.IntraChainDistSq import *

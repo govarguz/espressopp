@@ -9,9 +9,10 @@
 
 import time
 import espressopp
+import csv
 
 nsteps      = 10
-isteps      = 100
+isteps      = 10
 rc          = pow(2.0, 1.0/6.0)
 skin        = 0.4
 timestep    = 0.005
@@ -25,7 +26,7 @@ temperature = 1.0
 print espressopp.Version().info()
 print 'Setting up simulation ...'
 bonds, angles, x, y, z, Lx, Ly, Lz = espressopp.tools.convert.lammps.read('polymer_melt.lammps')
-bonds, angles, x, y, z, Lx, Ly, Lz = espressopp.tools.replicate(bonds, angles, x, y, z, Lx, Ly, Lz, xdim=1, ydim=1, zdim=1)
+bonds, angles, x, y, z, Lx, Ly, Lz = espressopp.tools.replicate(bonds, angles, x, y, z, Lx, Ly, Lz, xdim=2, ydim=1, zdim=1)
 num_particles = len(x)
 density = num_particles / (Lx * Ly * Lz)
 box = (Lx, Ly, Lz)
@@ -43,6 +44,10 @@ for i in range(num_particles):
     system.storage.decompose()
     new_particles = []
 system.storage.addParticles(new_particles, *props)
+
+# HHack: Added NPartPerMPIrank
+partNpMPIcp1=espressopp.analysis.NRealPart(system).compute()
+#print espressopp.analysis.NRealPart(system).compute()
 system.storage.decompose()
 
 # Lennard-Jones with Verlet list
@@ -81,13 +86,67 @@ print 'CellGrid            = ', system.storage.getCellGrid()
 print ''
 
 # espressopp.tools.decomp.tuneSkin(system, integrator)
+'''
+Saving Number of Interactions per core
+Filename: "NIntPerRank.dlb"
+example with 4 cores
+csv llike:118747 118747 118477 118477
+Filename: "NPartsPerRank.dlb"
+csv llike:118747 118747 118477 118477
 
+'''
+		
+f1=open("NIntPerRank.dlb","wt")		
+wr1=csv.writer(f1,delimiter=" ")
+pt1=[]
+f2=open("NPartsPerRank.dlb","wt")		
+wr2=csv.writer(f2,delimiter=" ")
+pt2=[]
+f3=open("PartsHangoverPerRankPerDir.dlb","wt")		
+wr3=csv.writer(f3,delimiter=" ")
+pt3=[]
+f4=open("PartsCommCellsPerRankPerDir.dlb","wt")		
+wr4=csv.writer(f4,delimiter=" ")
+pt4=[]
+'''
+Finished creating load balancing ranks
+'''
+system.storage.resetParticlesHangoverCounters()
+system.storage.resetParticlesCommCellsCounters()
 espressopp.tools.analyse.info(system, integrator)
 start_time = time.clock()
 for k in range(nsteps):
   integrator.run(isteps)
+  l=len(system.getInteraction(0).getVerletList().getAllPairs())
+  p=[]
+  for k2 in range(l):    	
+    p.append(len(system.getInteraction(0).getVerletList().getAllPairs()[k2]))
+  pt1.append(p)
+  pt2.append(espressopp.analysis.NRealPart(system).compute())
+  pt3.append(system.storage.getCounters())
+  pt4.append(system.storage.getCommCellsTotalParticles())
+  system.storage.resetParticlesHangoverCounters()
+  system.storage.resetParticlesCommCellsCounters()
   espressopp.tools.analyse.info(system, integrator)
+wr1.writerows(pt1)
+wr2.writerows(pt2)
+wr3.writerows(pt3)
+wr4.writerows(pt4)
+f1.close()
+f2.close()
+f3.close()
+f4.close()
 end_time = time.clock()
 espressopp.tools.analyse.info(system, integrator)
 espressopp.tools.analyse.final_info(system, integrator, vl, start_time, end_time)
-
+'''
+Saving Number of Interactions per core
+Filename: "NIntPerRank.dlb"
+csv llike: 
+'''
+#partNpMPIcp2=espressopp.analysis.NPart(system).compute()
+#with open("NpartsPerRank.dlb","w") as f:
+#  wr1=csv.writer(f,delimiter=" ")
+#  wr1.writerows([partNpMPIcp1,partNpMPIcp2])
+#fileout1.close()
+#print espressopp.analysis.NRealPart(system).compute()
